@@ -40,7 +40,7 @@ public class TheaterController {
      public ResponseEntity<TheaterDTO> updateTheater(@RequestBody TheaterDTO theaterDTO,@PathVariable Long theaterId)
      {
        TheaterDTO updatedTheater=theaterService.updateTheater(theaterDTO, theaterId);
-         return new ResponseEntity<>(updatedTheater,HttpStatus.CREATED);
+         return new ResponseEntity<>(updatedTheater,HttpStatus.OK);
      }
 
      @DeleteMapping("/admin/theaters/{theaterId}")
@@ -48,7 +48,7 @@ public class TheaterController {
      public ResponseEntity<TheaterDTO> deleteTheater(@PathVariable Long theaterId)
      {
        TheaterDTO deletedTheater=theaterService.deleteTheater(theaterId);
-         return new ResponseEntity<>(deletedTheater,HttpStatus.CREATED);
+         return new ResponseEntity<>(deletedTheater,HttpStatus.OK);
      }
   
 

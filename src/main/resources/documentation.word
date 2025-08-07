@@ -129,3 +129,9 @@ Module	Description	Est. Time
 🧾 Booking History	Show bookings per user	0.5 day
 📄 Admin APIs	View revenue, bookings, manage shows	1 day
 ✅ Testing & Postman Docs	Test all APIs	1 day
+
+GET /show/{id}	🔎 All seats of a show
+GET /show/{id}/available	🔎 Only available seats
+POST /book	✅ Book selected seats
+PUT /{id}	✏️ Update seat price (optional)
+DELETE /{id}	❌ Delete show seat (optional)
