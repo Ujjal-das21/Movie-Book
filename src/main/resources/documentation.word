@@ -1,0 +1,131 @@
+| Endpoint                       | HTTP Method | Description                                            |
+| ------------------------------ | ----------- | ------------------------------------------------------ |
+| `/api/movies`                  | `POST`      | **Create** a new movie (admin only)                    |
+| `/api/movies/{id}`             | `GET`       | **Get** movie details by ID                            |
+| `/api/movies`                  | `GET`       | **List all** movies (optionally paginated or filtered) |
+| `/api/movies/{id}`             | `PUT`       | **Update** movie details (admin only)                  |
+| `/api/movies/{id}`             | `DELETE`    | **Delete** a movie (admin only)                        |
+| `/api/movies/search?title=XYZ` | `GET`       | Search movies by title (for user convenience)          |
+| `/api/movies/now-showing`      | `GET`       | List movies currently playing (based on showtimes)     |
+| `/api/movies/upcoming`         | `GET`       | List upcoming movies                                   |
+
+🎯 Key Entities
+Here are the core entities and their relationships:
+
+1. User
+user_id (PK)
+
+username
+
+email
+
+password
+
+role (USER / ADMIN)
+
+2. Movie
+movie_id (PK)
+
+title
+
+description
+
+genre
+
+duration (in minutes)
+
+release_date
+
+language
+
+3. Theatre
+theatre_id (PK)
+
+name
+
+location
+
+4. Screen
+screen_id (PK)
+
+name (e.g., Screen 1)
+
+theatre_id (FK → Theatre)
+
+total_seats
+
+5. Show
+show_id (PK)
+
+movie_id (FK → Movie)
+
+screen_id (FK → Screen)
+
+start_time
+
+end_time
+
+show_date
+
+price_per_seat
+
+6. Seat
+seat_id (PK)
+
+screen_id (FK → Screen)
+
+seat_number (e.g., A1, A2)
+
+7. Booking
+booking_id (PK)
+
+user_id (FK → User)
+
+show_id (FK → Show)
+
+booking_time
+
+total_amount
+
+8. Booked_Seat
+booked_seat_id (PK)
+
+booking_id (FK → Booking)
+
+seat_id (FK → Seat)
+
+🔗 Relationships
+One Movie can have many Shows
+
+One Theatre has many Screens
+
+One Screen has many Seats
+
+One Show runs on one Screen
+
+One User can make many Bookings
+
+One Booking can reserve multiple Seats
+
+✅ Next Step
+
+🎭 TheaterController – REST Endpoints
+HTTP Method	Endpoint	Description
+POST	/api/theaters	✅ Create a new theater
+GET	/api/theaters	🔍 Get all theaters (with optional pagination)
+GET	/api/theaters/{id}	🔍 Get theater by ID
+PUT	/api/theaters/{id}	✏️ Update theater details
+DELETE	/api/theaters/{id}	❌ Delete a theater
+GET	/api/theaters/search?name=abc	🔍 Search theaters by partial name (like title search in movie)
+
+🧱 Modules & Estimated Time
+Module	Description	Est. Time
+✅ Movie Management	Add/update/delete/list/search movies	✅ Done
+🎟️ Theater Management	Create theaters, add screens	1 – 1.5 days
+🪑 Show Management	Create shows for movies in screens with timings	1 – 1.5 days
+👤 User Authentication	Signup, login, JWT security	1 – 2 days
+📅 Booking System	Book tickets, cancel booking	1.5 – 2 days
+💳 Payment Simulation	Dummy payment (or skip initially)	0.5 day
+🧾 Booking History	Show bookings per user	0.5 day
+📄 Admin APIs	View revenue, bookings, manage shows	1 day
+✅ Testing & Postman Docs	Test all APIs	1 day
