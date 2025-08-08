@@ -1,0 +1,41 @@
+This creates a safe workspace. Jab kaam complete ho jaye aur thoroughly test kar lo, then:
+# Stage and commit your changes
+git add .
+git commit -m "Initial implementation of booking module: seat reservation logic"
+
+# Push the new branch
+git push origin booking-module
+
+1️⃣ @Transactional for Atomicity
+Jaise maine pehle bola, @Transactional lagane se ek user ka booking process ya toh poora ho jaayega, ya bilkul rollback ho jaayega.
+But… ye alone race condition nahi rokta agar do user ek hi seat ek hi microsecond me select karte hain.
+
+2️⃣ @Lock(PESSIMISTIC_WRITE) for Concurrency Control
+Spring Data JPA me, @Lock(LockModeType.PESSIMISTIC_WRITE) ka use karke hum seat rows ko DB level pe lock kar sakte hain.
+
+Example repository method:
+
+java
+Copy
+Edit
+@Lock(LockModeType.PESSIMISTIC_WRITE)
+@Query("SELECT s FROM ShowSeat s WHERE s.show.showId = :showId AND s.showSeatId IN :seatIds")
+List<ShowSeat> findSeatsForBookingWithLock(@Param("showId") Long showId, @Param("seatIds") List<Long> seatIds);
+📌 Iska fayda:
+
+Jab ek user booking ke liye seat fetch karta hai, wo rows lock ho jaati hain till transaction end.
+
+Dusra user jab tak pehle wale ka transaction commit/rollback nahi hota, tab tak unhi seats ko fetch/update nahi kar paayega.
+
+Ye double booking prevent karta hai even under heavy traffic.
+
+3️⃣ Full Safe Flow
+Method pe @Transactional
+
+Repository method pe @Lock(PESSIMISTIC_WRITE)
+
+Booking start me seats fetch karo with lock
+
+Immediately seat status check karke BOOK karo
+
+Transaction commit hone par DB unlock ho jaata hai

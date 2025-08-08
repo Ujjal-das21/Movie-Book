@@ -1,7 +1,11 @@
 package com.moviebook.moviebook.model;
 
-import com.moviebook.moviebook.config.constants.SeatStatus;
+import java.time.LocalDateTime;
+import java.util.List;
 
+import com.moviebook.moviebook.config.constants.BookingStatus;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -11,39 +15,41 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Entity
+@Table(name = "bookings")
 @Data
-@Table(name = "show_seat")
-@NoArgsConstructor
 @AllArgsConstructor
-@Getter
-@Setter
-public class ShowSeat {
+@NoArgsConstructor
+@Builder
+public class Booking {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long showSeatId;
+    private Long bookingId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "seat_id", nullable = false)
-    private Seat seat;
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "show_id", nullable = false)
     private Show show;
-    @ManyToOne
-    @JoinColumn(name = "booking_id")
-    private Booking booking;
-    @Enumerated(EnumType.STRING)
-    private SeatStatus seatStatus;
 
-    private Double price;
+    @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL)
+    private List<ShowSeat> bookedSeats;
+
+    private Double totalPrice;
+
+    private LocalDateTime bookingTime;
+     private LocalDateTime CancelledAt;
+    @Enumerated(EnumType.STRING)
+    private BookingStatus bookingStatus;
 
 }
