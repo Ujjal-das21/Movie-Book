@@ -39,3 +39,41 @@ Booking start me seats fetch karo with lock
 Immediately seat status check karke BOOK karo
 
 Transaction commit hone par DB unlock ho jaata hai
+
+Pehle current branch me changes commit karo
+bash
+Copy
+Edit
+git add .
+git commit -m "Booking module implemented with cancel booking feature"
+2️⃣ Apne branch pe latest main ka code le lo (conflict kam hone ke liye)
+bash
+Copy
+Edit
+git checkout main
+git pull origin main
+git checkout <tumhari-branch-ka-naam>
+git merge main
+⚡ Isse tumhari branch me main ka latest aa jayega.
+
+3️⃣ Ab branch ko main me merge karo
+bash
+Copy
+Edit
+git checkout main
+git merge <tumhari-branch-ka-naam>
+4️⃣ Changes remote repo pe push karo
+bash
+Copy
+Edit
+git push origin main
+💡 Tip: Agar tumne branch sirf experiment ke liye banayi thi, to merge ke baad delete bhi kar sakte ho:
+
+bash
+Copy
+Edit
+git branch -d <tumhari-branch-ka-naam>
+git push origin --delete <tumhari-branch-ka-naam>
+
+
+CHANGE TO MYSQL DATABASE 
