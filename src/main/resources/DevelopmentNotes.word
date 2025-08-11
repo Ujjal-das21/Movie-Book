@@ -77,3 +77,15 @@ git push origin --delete <tumhari-branch-ka-naam>
 
 
 CHANGE TO MYSQL DATABASE 
+
+
+1️⃣ Current branch aur commits check karo
+
+bash
+Copy
+Edit
+git status
+git log --oneline --graph --decorate --all
+Isse tumhe pata chal jayega kaunse commits origin/main pe push hue hain aur kaunse sirf local hain.
+
+Bhai git log ka output close karne ke liye simple q dabana hota hai.

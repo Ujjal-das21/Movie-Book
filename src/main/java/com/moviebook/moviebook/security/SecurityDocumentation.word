@@ -1,0 +1,275 @@
+JWT Auth Full Blueprint
+Goal:
+
+User registration (sign-up)
+
+User login (authenticate) → JWT token generate karna
+
+JWT token ko validate karke endpoints secure karna
+
+Role-based access (Admin vs User)
+
+1. Packages structure
+src/main/java/com/moviebook/moviebook/security/
+
+arduino
+Copy
+Edit
+security/
+    config/
+        JwtAuthenticationEntryPoint.java
+        JwtRequestFilter.java
+        SecurityConfig.java
+    jwt/
+        JwtTokenUtil.java
+    model/
+        JwtRequest.java
+        JwtResponse.java
+    service/
+        CustomUserDetailsService.java
+2. Entities me changes
+User entity me:
+
+username or email (login ke liye unique)
+
+password (encrypted using BCrypt)
+
+roles (ManyToMany with Role entity)
+
+Role Entity:
+
+Role ID
+
+Role Name (e.g., ROLE_USER, ROLE_ADMIN)
+
+3. Flow samajh le
+Register API
+
+/api/auth/register → User ka record DB me store hoga
+
+Password BCrypt se hash hoga
+
+Default role assign hoga (ROLE_USER)
+
+Login API
+
+/api/auth/login → Username/Password check hoga
+
+Agar sahi hai → JWT token generate karke return karega
+
+JWT Token Util
+
+Secret key use karke token sign & verify karega
+
+Expiration time maintain karega
+
+JWT Filter
+
+Har request pe token header se read hoga
+
+Token valid → Authentication set hoga
+
+Token invalid → 401 Unauthorized
+
+Security Config
+
+Public endpoints allow karega (login, register)
+
+Baaki endpoints ke liye token required
+
+Role-based restriction set karega
+
+4. Important Security Concepts
+Stateless Session
+Spring Security ko session maintain nahi karna hai, token hi proof hoga.
+
+BCryptPasswordEncoder
+Password save karte time encrypt karo, login pe match karo.
+
+Roles & Authorities
+@PreAuthorize("hasRole('ADMIN')") se endpoints lock kar sakte ho.
+
+
+   [ User / Client ]
+          |
+          | 1. Send Login Request (username + password)
+          v
+   [ AuthController (/login) ]
+          |
+          | 2. Check credentials in DB (via CustomUserDetailsService)
+          v
+   [ AuthenticationManager ]
+          |
+          | 3. If valid -> Generate JWT token
+          v
+   [ JwtTokenUtil ]
+          |
+          | 4. Return token in response
+          v
+   [ User / Client stores token locally (e.g., in cookie or localStorage) ]
+
+-----------------------------------------------------
+   Next Request to Protected API
+-----------------------------------------------------
+
+   [ User / Client ]
+          |
+          | 5. Send request with "Authorization: Bearer <token>"
+          v
+   [ JwtRequestFilter ]
+          |
+          | 6. Extract & validate token using JwtTokenUtil
+          |
+          +-- Invalid? --> [ JwtAuthenticationEntryPoint -> 401 Unauthorized ]
+          |
+          | 7. Valid? Load user details & set Authentication in context
+          v
+   [ Controller / Service ]
+          |
+          | 8. Process request (user authenticated)
+          v
+   [ Response returned to client ]
+Key Points in Flow:
+
+JwtTokenUtil → Token create & validate karta hai
+
+JwtRequestFilter → Har request me token verify karta hai
+
+SecurityConfig → Kaunse endpoints public hain aur kaunse secure, decide karta hai
+
+Role-based check → @PreAuthorize or .hasRole("ADMIN")
+
+JWT Implementation – Sub-Modules Plan
+
+1️⃣ UserDetails & Roles Setup
+
+User entity ko Spring Security ke format me compatible banana.
+
+Role entity agar tum already bana chuke ho to mapping confirm karna.
+
+UserDetails interface ka custom implementation (CustomUserDetails).
+
+UserDetailsService ka custom class (CustomUserDetailsService).
+
+2️⃣ Token Utility
+
+JwtTokenUtil class banana jo token generate, validate & parse kare.
+
+Secret key aur expiry time application.properties me store karna.
+
+3️⃣ Authentication Controller (Login)
+
+Login endpoint banayenge jo username/password verify kare.
+
+Agar valid hai → JWT token generate karke response me bhejna.
+
+4️⃣ JWT Filter
+
+JwtRequestFilter jo har incoming request pe token verify kare.
+
+Agar valid token hai → Authentication context set karna.
+
+5️⃣ Security Configuration
+
+SecurityConfig banayenge jisme public vs private endpoints define honge.
+
+CORS, CSRF, password encoder, authentication manager config karenge.
+
+6️⃣ Testing
+
+Postman se login karke token lena.
+
+Token ke saath protected endpoint hit karna.
+
+Token expire/invalid case check karna.
+[Login Request]
+    ↓
+CustomUserDetailsService → User load
+    ↓
+JwtTokenUtil.generateToken(userDetails)
+    ↓
+Client ko token return
+    ↓
+[Next API Calls me]
+Request Header → Bearer Token
+    ↓
+JwtTokenUtil.validateToken()
+    ↓
+SecurityContext me user set
+
+
+
+7) Common pitfalls to check
+AuthenticationManager must be bean-exposed (you did).
+
+Password must be encoded at registration; decoder must match in login.
+
+CustomUserDetails.getUsername() should return email.
+
+JwtRequestFilter must be registered before UsernamePasswordAuthenticationFilter (you added).
+
+If you get 401, check logs: token parsing exceptions or JwtRequestFilter not invoked.
+
+For testing: make sure clock/time on server correct; token expiration time right.
+
+8) Suggested small tasks for you (order)
+Implement register endpoint + test in Postman.
+
+Implement login endpoint (use AuthenticationManager) + test.
+
+Use token to hit a protected endpoint (e.g., GET /api/public/hello → make it protected temporarily to test).
+
+(Optional) Put role in token claims so frontend can read it.
+
+Agar chaho to abhi mein AuthController ka full ready-to-copy code dedu (controller + service methods) — tum paste kar ke run kar sakte ho.
+Bol do agar chahte ho — warna tum pehle register try kar ke batao koi error aaye to main help karunga.
+
+Bhai ye problem to sabko hoti hai jab JWT setup hota hai — har baar Postman me manually token copy-paste karna bahut irritating hai 😅
+Good news: isko solve karne ke liye Postman me Environment + Variable ka concept hai, jisse tu ek baar login karega, token auto-save ho jayega, aur baaki endpoints me automatically use ho jayega.
+
+Solution: Auto Token Handling in Postman
+Step 1: Environment create kar
+Postman → top-right → Environments → Add
+
+Name: Local Dev
+
+Variable:
+
+sql
+Copy
+Edit
+Key: token
+Initial Value: (empty)
+Current Value: (empty)
+Step 2: Login request me script add kar
+Apne login API request me ja.
+
+Tests tab me yeh code daal:
+
+javascript
+Copy
+Edit
+// Assume response JSON has { "token": "..." }
+let jsonData = pm.response.json();
+pm.environment.set("token", jsonData.token);
+🔹 Isse jab tu login karega, Postman token ko environment variable {{token}} me save karega.
+
+Step 3: Baaki endpoints me token use kar
+Kisi bhi protected API request me Authorization tab me:
+
+Type: Bearer Token
+
+Token: {{token}}
+
+Ya fir Headers tab me manually:
+
+Copy
+Edit
+Authorization   Bearer {{token}}
+Step 4: Result
+Ab tu sirf login API call karega → token auto save ho jayega.
+
+Baaki endpoints me variable se token auto fill hoga.
+
+Agar tu dobara login kare, variable update ho jayega, koi paste ki zarurat nahi.
+

@@ -14,9 +14,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.moviebook.moviebook.payload.CreateUserDTO;
 import com.moviebook.moviebook.payload.TheaterDTO;
 import com.moviebook.moviebook.payload.UserDTO;
+import com.moviebook.moviebook.security.model.JwtRequest;
+import com.moviebook.moviebook.security.model.JwtResponse;
 import com.moviebook.moviebook.service.UserService;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/api")
@@ -25,20 +30,36 @@ public class UserController {
     @Autowired
     UserService userService;
 
-    @PostMapping("/public/users")
+    @PostMapping("/auth/register")
 
-    public ResponseEntity<UserDTO> createUser(@RequestBody UserDTO userDTO )
+    public ResponseEntity<UserDTO> createUser(@RequestBody CreateUserDTO userDTO )
     {
          UserDTO createdUser=userService.createUser(userDTO);
         return new ResponseEntity<>(createdUser,HttpStatus.CREATED);
     }
 
-    @GetMapping("/public/users")
+    @PostMapping("/auth/login")
+
+    public ResponseEntity<JwtResponse>loginUser(@RequestBody JwtRequest jwtRequest)
+    {
+         JwtResponse jwtResponse = userService.login(jwtRequest);
+         return new ResponseEntity<>(jwtResponse,HttpStatus.OK);
+    }
+     @PostMapping("/auth/logout")
+
+    public ResponseEntity<String> logoutUser(HttpServletRequest request)
+    {
+          userService.logout(request);
+         return new ResponseEntity<>("Logged out successfully",HttpStatus.OK);
+    }
+
+
+    @GetMapping("/admin/users")
     public ResponseEntity<List<UserDTO>> getAllUsers()
     {
         return ResponseEntity.ok(userService.getAllUsers());
     }
-    @GetMapping("/public/users/{userId}")
+    @GetMapping("/user/{userId}")
 
     public ResponseEntity<UserDTO> getUserById(@PathVariable Long userId)
     {
@@ -46,7 +67,7 @@ public class UserController {
         return new ResponseEntity<>(user,HttpStatus.OK);
     }
 
-    @PutMapping("/public/users/{userId}")
+    @PutMapping("/user/{userId}")
     public ResponseEntity<UserDTO> updateUser(@PathVariable Long userId,@RequestBody UserDTO userDTO )
     {
         UserDTO updatedUser=userService.updatedUser(userId,userDTO);

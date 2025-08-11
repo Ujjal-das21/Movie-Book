@@ -5,14 +5,27 @@ import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.moviebook.moviebook.config.constants.UserRole;
 import com.moviebook.moviebook.exceptions.APIException;
 import com.moviebook.moviebook.exceptions.ResourceNotFoundException;
 import com.moviebook.moviebook.model.User;
+import com.moviebook.moviebook.payload.CreateUserDTO;
 import com.moviebook.moviebook.payload.UserDTO;
 import com.moviebook.moviebook.repositories.UserRepository;
+import com.moviebook.moviebook.security.jwt.JwtTokenUtil;
+import com.moviebook.moviebook.security.model.CustomUserDetails;
+import com.moviebook.moviebook.security.model.JwtRequest;
+import com.moviebook.moviebook.security.model.JwtResponse;
+import com.moviebook.moviebook.security.service.CustomUserDetailsService;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -22,8 +35,19 @@ public class UserServiceImpl implements UserService {
     @Autowired
     ModelMapper modelMapper;
 
+    @Autowired
+    PasswordEncoder passwordEncoder;
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private CustomUserDetailsService userDetailsService;
+
+    @Autowired
+    private JwtTokenUtil jwtTokenUtil;
+
     @Override
-    public UserDTO createUser(UserDTO userDTO) {
+    public UserDTO createUser(CreateUserDTO userDTO) {
 
         User userFromDb = userRepository.findByEmail(userDTO.getEmail());
 
@@ -33,6 +57,7 @@ public class UserServiceImpl implements UserService {
         User user = modelMapper.map(userDTO, User.class);
         // set user role as User by default
         user.setRole(UserRole.USER);
+        user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
 
         User savedUser = userRepository.save(user);
 
@@ -91,6 +116,30 @@ public class UserServiceImpl implements UserService {
                 user.setRole(UserRole.ADMIN);
                 User updated = userRepository.save(user);
         return modelMapper.map(updated, UserDTO.class);
+    }
+
+    @Override
+    public JwtResponse login(JwtRequest jwtRequest) {
+        
+         Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        jwtRequest.getEmail(),
+                        jwtRequest.getPassword()
+                )
+        );
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+         String token = jwtTokenUtil.generateToken(userDetails);
+         
+        return new JwtResponse(token);
+    }
+
+    @Override
+    public void logout(HttpServletRequest request) {
+        
+        // JWT stateless hota hai, so logout ka kaam mostly client pe hota hai
+        // Agar blacklist maintain karni hai toh DB me store karke expiry tak reject karna padega
+        SecurityContextHolder.clearContext();
     }
 
 }
