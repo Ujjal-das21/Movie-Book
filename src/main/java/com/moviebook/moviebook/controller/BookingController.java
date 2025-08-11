@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.moviebook.moviebook.payload.BookingDTO;
+import com.moviebook.moviebook.security.model.CustomUserDetails;
 import com.moviebook.moviebook.service.BookingService;
 
 @RestController
@@ -24,8 +26,13 @@ public class BookingController {
     BookingService bookingService;
 
     @PostMapping("/bookings")
-    public ResponseEntity<BookingDTO> createBooking(@RequestBody BookingDTO bookingDTO )
+    public ResponseEntity<BookingDTO> createBooking(@RequestBody BookingDTO bookingDTO,Authentication authentication)
     {
+        CustomUserDetails loggedInUser = (CustomUserDetails) authentication.getPrincipal();
+
+        if (!loggedInUser.getUserId().equals(bookingDTO.getUserId())) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
         BookingDTO booking=bookingService.createBooking(bookingDTO);
         return new ResponseEntity<>(booking,HttpStatus.CREATED);
     }
@@ -49,8 +56,15 @@ public class BookingController {
 
     @DeleteMapping("/bookings/{bookingId}")
 
-    public  ResponseEntity<BookingDTO> cancelBooking(@PathVariable Long bookingId)
+    public  ResponseEntity<BookingDTO> cancelBooking(@PathVariable Long bookingId,Authentication authentication)
     {
+         CustomUserDetails loggedInUser = (CustomUserDetails) authentication.getPrincipal();
+         Long userId=bookingService.getBookingById(bookingId).getUserId();
+
+        if (!loggedInUser.getUserId().equals(userId)) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
+        
          BookingDTO canceledBooking=bookingService.cancelBooking(bookingId);
         return new ResponseEntity<>(canceledBooking,HttpStatus.OK);
     }
