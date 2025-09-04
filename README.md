@@ -91,7 +91,8 @@ mvn spring-boot:run
 | GET    | `/api/users/{id}`     | Get user details |
 | DELETE | `/api/users/{id}`     | Delete a user |
 
-##Swagger-UI-Snippet
-<img width="1857" height="875" alt="image" src="https://github.com/user-attachments/assets/c48c4374-d5b6-418e-923c-7a5853958cae" />
+## Swagger-UI-Snippet
+
+![Swagger UI Screenshot](screenshots/swagger-ui.png)
 
 
