@@ -17,6 +17,11 @@ import com.moviebook.moviebook.payload.MovieDTO;
 import com.moviebook.moviebook.payload.MovieResponse;
 import com.moviebook.moviebook.service.MovieService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+
 @RestController
 @RequestMapping("/api")
 
@@ -27,59 +32,110 @@ public class MovieController {
 
     @PostMapping("/admin/movie")
 
-    public ResponseEntity<MovieDTO> createMovie(@RequestBody MovieDTO movieDTO)
-    {
-        MovieDTO savedMovieDTO=movieService.createMovie(movieDTO);
-       return new ResponseEntity<>(savedMovieDTO,HttpStatus.CREATED);
+    @Operation(summary = "Create a new movie", description = "Adds a new movie to the system", security = @SecurityRequirement(name = "bearerAuth") // 🔒
+                                                                                                                                                    // usually
+                                                                                                                                                    // only
+                                                                                                                                                    // admin
+                                                                                                                                                    // can
+                                                                                                                                                    // create
+                                                                                                                                                    // movies
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Movie created successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid request data"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - JWT token missing or invalid"),
+            @ApiResponse(responseCode = "409", description = "Movie with same name already exists")
+    })
+
+    public ResponseEntity<MovieDTO> createMovie(@RequestBody MovieDTO movieDTO) {
+        MovieDTO savedMovieDTO = movieService.createMovie(movieDTO);
+        return new ResponseEntity<>(savedMovieDTO, HttpStatus.CREATED);
     }
 
     @PutMapping("/admin/movies/{movieId}")
-    public ResponseEntity<MovieDTO> updateMovie(@RequestBody MovieDTO updatedMovieDTO,@PathVariable Long movieId)
-    {
-        MovieDTO updatedMovie=movieService.updateMovie(updatedMovieDTO, movieId);
-        return new ResponseEntity<>(updatedMovie,HttpStatus.OK);
+    //
+    @Operation(summary = "Update movie details", description = "Updates the details of an existing movie by its ID", security = @SecurityRequirement(name = "bearerAuth") // 🔒
+                                                                                                                                                                          // since
+                                                                                                                                                                          // usually
+                                                                                                                                                                          // only
+                                                                                                                                                                          // admin
+                                                                                                                                                                          // updates
+                                                                                                                                                                          // movies
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Movie updated successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid request data"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - JWT token missing or invalid"),
+            @ApiResponse(responseCode = "404", description = "Movie not found")
+    })
+    public ResponseEntity<MovieDTO> updateMovie(@RequestBody MovieDTO updatedMovieDTO, @PathVariable Long movieId) {
+        MovieDTO updatedMovie = movieService.updateMovie(updatedMovieDTO, movieId);
+        return new ResponseEntity<>(updatedMovie, HttpStatus.OK);
 
     }
+
     @DeleteMapping("/admin/movies/{movieId}")
-    public ResponseEntity<MovieDTO> deleteMovie(@PathVariable Long movieId)
-    {
-        MovieDTO deleteMovie=movieService.deleteMovie(movieId);
-       return new ResponseEntity<>(deleteMovie,HttpStatus.OK);
-        
+
+    // swagger-documenattion
+    @Operation(summary = "Delete a movies by Id", description = "Deletes a movie and returns it")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Movie deleted successfully"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - JWT token missing or invalid")
+    })
+
+    public ResponseEntity<MovieDTO> deleteMovie(@PathVariable Long movieId) {
+        MovieDTO deleteMovie = movieService.deleteMovie(movieId);
+        return new ResponseEntity<>(deleteMovie, HttpStatus.OK);
+
     }
 
     @GetMapping("/public/movies/{movieId}")
 
-    public ResponseEntity<MovieDTO> getMovieById(@PathVariable Long movieId)
-    {
-         MovieDTO movieResult=movieService.getMovieById(movieId);
+    @Operation(summary = "Get all movies by Id", description = "Fetches a movie by it's Id")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Movie fetched successfully"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - JWT token missing or invalid")
+    })
 
-          return new ResponseEntity<>(movieResult,HttpStatus.OK);
+    public ResponseEntity<MovieDTO> getMovieById(@PathVariable Long movieId) {
+        MovieDTO movieResult = movieService.getMovieById(movieId);
+
+        return new ResponseEntity<>(movieResult, HttpStatus.OK);
 
     }
 
     @GetMapping("/public/movies")
 
-    public ResponseEntity<MovieResponse> getAllMovies(@RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
-    @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
-    @RequestParam(value = "sortBy", defaultValue = "releaseDate", required = false) String sortBy,
-    @RequestParam(value = "sortDir", defaultValue = "asc", required = false) String sortDir)
-    {
+    @Operation(summary = "Get all movies", description = "Fetches the list of all available movies")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "List of movies fetched successfully"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - JWT token missing or invalid")
+    })
+
+    public ResponseEntity<MovieResponse> getAllMovies(
+            @RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
+            @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
+            @RequestParam(value = "sortBy", defaultValue = "releaseDate", required = false) String sortBy,
+            @RequestParam(value = "sortDir", defaultValue = "asc", required = false) String sortDir) {
         MovieResponse response = movieService.getAllMovies(pageNumber, pageSize, sortBy, sortDir);
-    return new ResponseEntity<>(response, HttpStatus.OK);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping("/public/movies/title")
 
-   public ResponseEntity<MovieResponse> getMovieByTitle( @RequestParam String title,
-    @RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
-    @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
-    @RequestParam(value = "sortBy", defaultValue = "releaseDate", required = false) String sortBy,
-    @RequestParam(value = "sortDir", defaultValue = "asc", required = false) String sortDir)
-    {
+    @Operation(summary = "Get all movies by Title", description = "Fetches the list of all available movies by Title")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "List of movies fetched successfully"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - JWT token missing or invalid")
+    })
+
+    public ResponseEntity<MovieResponse> getMovieByTitle(@RequestParam String title,
+            @RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
+            @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
+            @RequestParam(value = "sortBy", defaultValue = "releaseDate", required = false) String sortBy,
+            @RequestParam(value = "sortDir", defaultValue = "asc", required = false) String sortDir) {
         MovieResponse response = movieService.getMoviesByTitle(title, pageNumber, pageSize, sortBy, sortDir);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
-
 
 }

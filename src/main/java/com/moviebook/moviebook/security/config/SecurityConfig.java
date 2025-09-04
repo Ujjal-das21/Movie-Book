@@ -67,6 +67,12 @@ public class SecurityConfig {
                         // Everything else requires authentication
                         // Admin-only endpoints
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**",
+                                "/v3/api-docs.yaml"
+                        ).permitAll()
 
                         // User-only endpoints
                         .requestMatchers("/api/user/**").hasAnyRole("ADMIN","USER")

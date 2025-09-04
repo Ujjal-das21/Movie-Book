@@ -15,6 +15,11 @@ import com.moviebook.moviebook.payload.SeatResponse;
 import com.moviebook.moviebook.payload.ShowResponse;
 import com.moviebook.moviebook.service.SeatService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+
 @RestController
 @RequestMapping("/api")
 public class SeatController {
@@ -23,29 +28,38 @@ public class SeatController {
     SeatService seatService;
 
     @GetMapping("/public/seats/screen/{screenId}")
-    public ResponseEntity<SeatResponse> getAllSeatsInScreen(@RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
-    @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
-    @RequestParam(value = "sortBy", defaultValue = "seatId", required = false) String sortBy,
-    @RequestParam(value = "sortDir", defaultValue = "asc", required = false) String sortDir,@PathVariable Long screenId)
-    {
-         SeatResponse allSeatsByScrrenId=seatService.getAllSeatsByScreenId(pageNumber, pageSize, sortBy, sortDir,screenId);
-         return new ResponseEntity<>(allSeatsByScrrenId, HttpStatus.OK);
+
+    @Operation(summary = "Get all seats in a screen", description = "Fetches all the seats (booked and available) for a given screen by screenId", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Seats fetched successfully"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - JWT token missing or invalid"),
+            @ApiResponse(responseCode = "404", description = "Screen not found or no seats available")
+    })
+    public ResponseEntity<SeatResponse> getAllSeatsInScreen(
+            @RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
+            @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
+            @RequestParam(value = "sortBy", defaultValue = "seatId", required = false) String sortBy,
+            @RequestParam(value = "sortDir", defaultValue = "asc", required = false) String sortDir,
+            @PathVariable Long screenId) {
+        SeatResponse allSeatsByScrrenId = seatService.getAllSeatsByScreenId(pageNumber, pageSize, sortBy, sortDir,
+                screenId);
+        return new ResponseEntity<>(allSeatsByScrrenId, HttpStatus.OK);
     }
 
     @PutMapping("/admin/seats/{seatId}")
-    
-    public String updateSeat()
-    {
+
+    @Operation(summary = "Seat management endpoints (planned)", description = "This controller will handle seat-related operations like  update seat, delete seat, and get seats by screen. Scheduled for next version.")
+
+    public String updateSeat() {
         return "Seat updated successfully";
     }
 
     @DeleteMapping("/admin/seats/{seatId}")
 
-    public String deleteSeat()
-    {
+    @Operation(summary = "Seat management endpoints (planned)", description = "This controller will handle seat-related operations like  update seat, delete seat, and get seats by screen. Scheduled for next version.")
+
+    public String deleteSeat() {
         return "Seat deleted Successfully";
     }
-
-    
 
 }
