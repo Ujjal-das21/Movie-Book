@@ -93,6 +93,6 @@ mvn spring-boot:run
 
 ## Swagger-UI-Snippet
 
-![Swagger UI Screenshot](screenshots/swagger-ui.png)
+![Swagger UI Screenshot](screenshots/swaggerUi.png)
 
 
